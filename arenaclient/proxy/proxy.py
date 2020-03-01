@@ -11,6 +11,7 @@ import cv2
 import aiohttp
 import portpicker
 from s2clientprotocol import sc2api_pb2 as sc_pb
+from sc2.versions import VERSIONS
 import traceback
 
 from arenaclient.proxy.lib import Bot, Controller, Paths, Result
@@ -221,15 +222,30 @@ class Proxy:
         logger.debug("Game created")
         return response
 
+    @property
+    def versions(self):
+        """ Opens the versions.json file which origins from
+        https://github.com/Blizzard/s2client-proto/blob/master/buildinfo/versions.json """
+        return VERSIONS
+
+    def find_data_hash(self, target_sc2_version: str):
+        """ Returns the data hash from the matching version string. """
+        version: dict
+        for version in self.versions:
+            if version["label"] == target_sc2_version:
+                return version["data-hash"]
+
     def _launch(self, host: str, port: int = None, full_screen: bool = False):
         """
-        Launches SC2 with the relevant arguments and returns a Popen process.This method also populates self.port if it
+        Launches SC2 with the relevant arguments and returns a Popen process. This method also populates self.port if it
         isn't populated already.
         :param host: str
         :param port: int
         :param full_screen: bool
         :return:
         """
+        # _sc2_version = "4.10"
+        _sc2_version = None        
         if self.port is None:
             self.port = portpicker.pick_unused_port()
         else:
@@ -248,6 +264,31 @@ class Proxy:
             "-tempDir",
             tmp_dir,
         ]
+
+        _data_hash = None
+        if _sc2_version:
+
+            def special_match(strg: str):
+                """ Tests if the specified version is in the versions.py dict. """
+                for version in self.versions:
+                    if version["label"] == strg:
+                        return True
+                return False
+
+            valid_version_string = special_match(_sc2_version)
+            if valid_version_string:
+                _data_hash = self.find_data_hash(_sc2_version)
+                assert (
+                    _data_hash is not None
+                ), f"StarCraft 2 Client version ({_sc2_version}) was not found inside sc2/versions.py file. Please check your spelling or check the versions.py file."
+
+            else:
+                logger.warning(
+                    f'The submitted version string in sc2.rungame() function call (sc2_version="{_sc2_version}") was not found in versions.py. Running latest version instead.'
+                )
+
+        if _data_hash:
+            args.extend(["-dataVersion", _data_hash])
 
 
         return subprocess.Popen(args, cwd=(str(Paths.CWD) if Paths.CWD else None))
@@ -466,7 +507,8 @@ class Proxy:
                                     await self.ws_p2s.send_bytes(req)
                                     try:
                                         data_p2s = await ws_p2s.receive_bytes()  # Receive response from SC2
-                                        await self.process_response(data_p2s)
+                                        t = asyncio.create_task(self.process_response(data_p2s))
+                                        # await self.process_response(data_p2s)
                                     except (
                                             asyncio.CancelledError,
                                             asyncio.TimeoutError,
@@ -475,6 +517,7 @@ class Proxy:
                                         logger.error(str(e))
                                         print(traceback.format_exc())
                                     await self.ws_c2p.send_bytes(data_p2s)  # Forward response to bot
+                                    await t
                                 start_time = time.monotonic()  # Start the frame timer.
                             elif msg.type == aiohttp.WSMsgType.CLOSED:
                                 logger.error("Client shutdown")
