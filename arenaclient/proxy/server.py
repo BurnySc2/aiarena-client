@@ -33,12 +33,31 @@ class ConnectionHandler:
     """
     Handles all connections and creates the relevant objects.
     """
-
+    
     def __init__(self):
         self.connected_clients: int = 0
         self.supervisor: Supervisor = None
         self.t1: Timer = None
         self.t2: Timer = None
+        self.proxy1 = None
+        self.proxy2 = None
+        self.port_pool = [0,0]
+    
+    def reset(self):
+        self.connected_clients: int = 0
+        self.supervisor: Supervisor = None
+        self.t1: Timer = None
+        self.t2: Timer = None
+        self.proxy1 = None
+        self.proxy2 = None
+
+    @property
+    def ports_available(self):
+        return sum(self.port_pool) != 0
+    
+    def set_ports(self, port1, port2):
+        self.port_pool[0] = port1
+        self.port_pool[1] = port2
 
     async def bots_connected(self, args):
         """
@@ -117,8 +136,9 @@ class ConnectionHandler:
                 self.t2 = Timer(40, self.bots_connected, args=[request, 2])  # Calls bots_connected after 40 seconds.
 
                 # game_created =False forces first player to create game when both players are connected.
-                proxy1 = Proxy(
+                self.proxy1 = Proxy(
                     game_created=False,
+                    port=self.port_pool[0] if self.ports_available else None,
                     player_name=self.supervisor.player1,
                     opponent_name=self.supervisor.player2,
                     max_game_time=self.supervisor.max_game_time,
@@ -132,14 +152,15 @@ class ConnectionHandler:
                     visualize=self.supervisor.visualize,
 
                 )
-                await proxy1.websocket_handler(request)
+                await self.proxy1.websocket_handler(request)
 
             elif len(request.app["websockets"]) == 2:  # Supervisor and bot 1 connected.
                 logger.debug("Second bot connecting")
                 await self.supervisor.send_message({"Bot": "Connected"})
 
-                proxy2 = Proxy(
+                self.proxy2 = Proxy(
                     game_created=True,  # Game has already been created by Bot 1.
+                    port=self.port_pool[1] if self.ports_available else None,
                     player_name=self.supervisor.player2,
                     opponent_name=self.supervisor.player1,
                     max_game_time=self.supervisor.max_game_time,
@@ -152,7 +173,10 @@ class ConnectionHandler:
                     real_time=self.supervisor.real_time,
                     visualize=self.supervisor.visualize,
                 )
-                await proxy2.websocket_handler(request)
+                await self.proxy2.websocket_handler(request)
+                
+        if self.proxy1 and self.proxy2:
+            self.set_ports(self.proxy1.port, self.proxy2.port)
 
         else:  # TODO: Implement this for devs running without a supervisor
             raise NotImplementedError
@@ -163,7 +187,7 @@ class ConnectionHandler:
         if self.t2:
             self.t2.cancel()
 
-        self.__init__()
+        self.reset()
         return web.Response(text="OK")
 
 
@@ -225,6 +249,7 @@ def run_server(use_frontend=None):
     run_frontend = use_frontend if use_frontend is not None else args.frontend
     if 'false' in [x.lower() for x in unknown]:
         run_frontend = False
+    # run_frontend = True # Testing
     try:
         loop = asyncio.get_event_loop()
     except:

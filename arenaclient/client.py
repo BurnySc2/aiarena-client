@@ -300,7 +300,7 @@ class Client:
 
             if msg.get("PID", None):
                 self._utl.pid_cleanup([bot1_process.pid, bot2_process.pid])  # Terminate bots first
-                self._utl.pid_cleanup(msg["PID"])  # Terminate SC2 processes
+                # self._utl.pid_cleanup(msg["PID"])  # Terminate SC2 processes
 
             if msg.get("Result", None):
                 result.append(msg)
@@ -369,7 +369,7 @@ class Client:
         try:
             if self._config.SYSTEM == "Linux":
                 self._utl.printout("Killing SC2")
-                os.system("pkill -f SC2_x64")
+                # os.system("pkill -f SC2_x64")
                 if server:
                     os.system("lsof -ti tcp:8765 | xargs kill")
             for process in psutil.process_iter():
@@ -377,11 +377,11 @@ class Client:
                     for conns in process.connections(kind="inet"):
                         if conns.laddr.port == self._config.SC2_PROXY["PORT"]:
                             process.send_signal(signal.SIGTERM)
-                if process.name() == "SC2_x64.exe":
-                    try:
-                        process.send_signal(signal.SIGTERM)
-                    except psutil.AccessDenied:
-                        pass
+                # if process.name() == "SC2_x64.exe":
+                #     try:
+                #         process.send_signal(signal.SIGTERM)
+                #     except psutil.AccessDenied:
+                #         pass
 
         except:
             pass

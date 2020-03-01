@@ -91,16 +91,17 @@ class Proxy:
         
     async def clean_up(self):
         try:
-            if self.process is not None and self.process.poll() is None:
-                for _ in range(3):
-                    self.process.terminate()
-                    time.sleep(0.5)
-                    if self.process.poll() is not None:
-                        break
-                else:
-                    self.process.kill()
-                    self.process.wait()
-                    logger.error("KILLED")
+            pass
+            # if self.process is not None and self.process.poll() is None:
+            #     for _ in range(3):
+            #         self.process.terminate()
+            #         time.sleep(0.5)
+            #         if self.process.poll() is not None:
+            #             break
+            #     else:
+            #         self.process.kill()
+            #         self.process.wait()
+            #         logger.error("KILLED")
         except:
             print(traceback.format_exc())
             
@@ -244,7 +245,7 @@ class Proxy:
         :param full_screen: bool
         :return:
         """
-        # _sc2_version = "4.10"
+        # _sc2_version = "4.10" # Testing
         _sc2_version = None        
         if self.port is None:
             self.port = portpicker.pick_unused_port()
@@ -419,7 +420,8 @@ class Proxy:
         :return:
         """
         logger.debug("Launching SC2")
-        self.process = self._launch("127.0.0.1", False)
+        if not self.port:
+            self.process = self._launch("127.0.0.1", False)
         logger.debug("Starting client session")
         start_time = time.monotonic()
         async with aiohttp.ClientSession() as session:
@@ -438,7 +440,7 @@ class Proxy:
 
             # This populates self.port
 
-            self.supervisor.pids = self.process.pid  # Add SC2 to supervisor pid list for use in cleanup
+            # self.supervisor.pids = self.process.pid  # Add SC2 to supervisor pid list for use in cleanup
 
             url = "ws://localhost:" + str(self.port) + "/sc2api"
             logger.debug("Websocket connection: " + str(url))
@@ -454,7 +456,7 @@ class Proxy:
 
             async with session.ws_connect(url, max_msg_size=0) as ws_p2s:  # Connects to SC2 instance
                 self.ws_p2s = ws_p2s
-                c = Controller(self.ws_p2s, self.process)
+                c = Controller(self.ws_p2s)
                 if not self.created_game:
                     await self.create_game(c, players, self.map_name)
                     self.created_game = True
@@ -576,15 +578,15 @@ class Proxy:
                     await session.close()
 
                     logger.debug("Disconnected")
-                    logger.debug("Killing SC2")
-                    if self.process is not None and self.process.poll() is None:
-                        for _ in range(3):
-                            self.process.terminate()
-                            time.sleep(0.5)
-                            if self.process.poll() is not None:
-                                break
-                        else:
-                            self.process.kill()
-                            self.process.wait()
+                    # logger.debug("Killing SC2")
+                    # if self.process is not None and self.process.poll() is None:
+                    #     for _ in range(3):
+                    #         self.process.terminate()
+                    #         time.sleep(0.5)
+                    #         if self.process.poll() is not None:
+                    #             break
+                    #     else:
+                    #         self.process.kill()
+                    #         self.process.wait()
                     
                     return self.ws_p2s

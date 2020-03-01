@@ -155,9 +155,9 @@ class Controller(Protocol):
     """
     python-sc2 class. https://github.com/Dentosal/python-sc2/
     """
-    def __init__(self, ws, process):
+    def __init__(self, ws):
         super().__init__(ws)
-        self.__process = process
+        # self.__process = process
 
     async def create_game(self, game_map, players, realtime, random_seed=None):
         assert isinstance(realtime, bool)
