@@ -106,7 +106,6 @@ class ConnectionHandler:
                     mpwriter.append(data, {
                         'Content-Type': 'image/jpeg'
                     })
-                    # asyncio.create_task( mpwriter.write(response, close_boundary=False))
                     await mpwriter.write(resp, close_boundary=False)
             
             except asyncio.CancelledError:
@@ -141,16 +140,7 @@ class ConnectionHandler:
                     port=self.port_pool[0] if self.ports_available else None,
                     player_name=self.supervisor.player1,
                     opponent_name=self.supervisor.player2,
-                    max_game_time=self.supervisor.max_game_time,
-                    map_name=self.supervisor.map,
-                    replay_name=self.supervisor.replay_name,
-                    disable_debug=bool(self.supervisor.disable_debug),
                     supervisor=self.supervisor,
-                    strikes=self.supervisor.strikes,
-                    max_frame_time=self.supervisor.max_frame_time,
-                    real_time=self.supervisor.real_time,
-                    visualize=self.supervisor.visualize,
-
                 )
                 await self.proxy1.websocket_handler(request)
 
@@ -163,15 +153,7 @@ class ConnectionHandler:
                     port=self.port_pool[1] if self.ports_available else None,
                     player_name=self.supervisor.player2,
                     opponent_name=self.supervisor.player1,
-                    max_game_time=self.supervisor.max_game_time,
-                    map_name=self.supervisor.map,
-                    replay_name=self.supervisor.replay_name,
-                    disable_debug=bool(self.supervisor.disable_debug),
                     supervisor=self.supervisor,
-                    strikes=self.supervisor.strikes,
-                    max_frame_time=self.supervisor.max_frame_time,
-                    real_time=self.supervisor.real_time,
-                    visualize=self.supervisor.visualize,
                 )
                 await self.proxy2.websocket_handler(request)
                 
@@ -208,7 +190,7 @@ def on_start():
             "API_token": "", 
             "visualize": "Off"
             }
-        with open(settings_file,'w+') as f:
+        with open(settings_file, 'w+') as f:
             json.dump(data, f)
     
     if not os.path.isfile(results_file):
@@ -241,10 +223,9 @@ def run_server(use_frontend=None):
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-f","--frontend", help="Start server with frontend", action="store_true")
+    parser.add_argument("-f", "--frontend", help="Start server with frontend", action="store_true")
 
     args, unknown = parser.parse_known_args()
-    
 
     run_frontend = use_frontend if use_frontend is not None else args.frontend
     if 'false' in [x.lower() for x in unknown]:
@@ -281,7 +262,7 @@ def run_server(use_frontend=None):
             web.get("/get_maps", frontend.get_maps, name='get_maps'),
             web.get("/replays/{replay}", frontend.replays, name='replays'),
             web.get("/logs/{match_id}/{bot_name}/stderr.log", frontend.logs, name='logs'),
-            web.get("/game_running", game_runner.game_running,name='game_running')
+            web.get("/game_running", game_runner.game_running, name='game_running')
         ]
         app.router.add_routes(routes)
     on_start()

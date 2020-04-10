@@ -60,6 +60,16 @@ class Utl:
         with open(self._config.LOG_FILE, "a+") as f:
             line = " ".join(infos) + "\n"
             f.write(line)
+    
+    @staticmethod
+    def convert_wsl_paths(path):
+        """
+        :param path:
+        :return:
+        """
+        new_path = path.replace( 'C:','/mnt/c',).replace('D:','/mnt/d').replace("\\","/").replace(" ", "\ ")
+     
+        return new_path
 
     # Needed for hashlib md5 function
     @staticmethod
@@ -127,25 +137,28 @@ class Utl:
                 self._logger.debug("Already closed: " + str(pid))
 
     @staticmethod
-    def move_pid(pid):
+    def move_pids(pids):
         """
-        Move the pid to another process group to avoid the bot killing the ai-arena client when closing.
+        Move the pid/pids to another process group to avoid the bot killing the ai-arena client when closing.
         (CPP API specific)
 
-        :param pid:
+        :param pids:
         :return:
         """
-        if pid != 0:
-            return
-        else:
-            for _ in range(0, 5):
-                try:
-                    os.setpgid(pid, 0)
-                    return
-                except OSError:
-                    if os.getpgid(pid) == 0:
+        if not isinstance(pids, list):
+            pids = [pids]
+        for pid in pids:
+            if pid != 0:
+                return
+            else:
+                for _ in range(0, 5):
+                    try:
+                        os.setpgid(pid, 0)
                         return
-                    time.sleep(0.25)  # sleep for retry
+                    except OSError:
+                        if os.getpgid(pid) == 0:
+                            return
+                        time.sleep(0.25)  # sleep for retry
 
     def kill_current_server(self):
         """
