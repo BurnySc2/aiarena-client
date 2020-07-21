@@ -96,14 +96,9 @@ class AbstractPlayer:
     """
     python-sc2 class. https://github.com/Dentosal/python-sc2/
     """
+
     def __init__(
-        self,
-        p_type,
-        race=None,
-        name=None,
-        difficulty=None,
-        ai_build=None,
-        fullscreen=False,
+        self, p_type, race=None, name=None, difficulty=None, ai_build=None, fullscreen=False,
     ):
         assert isinstance(p_type, PlayerType), f"p_type is of type {type(p_type)}"
         assert name is None or isinstance(name, str), f"name is of type {type(name)}"
@@ -122,6 +117,7 @@ class Bot(AbstractPlayer):
     """
     python-sc2 class. https://github.com/Dentosal/python-sc2/
     """
+
     def __init__(self, race, ai, name=None, fullscreen=False):
         """
         AI can be None if this player object is just used to inform the
@@ -141,6 +137,7 @@ class ProtocolError(Exception):
     """
     python-sc2 class. https://github.com/Dentosal/python-sc2/
     """
+
     pass
 
 
@@ -152,6 +149,7 @@ class Controller(Protocol):
     """
     python-sc2 class. https://github.com/Dentosal/python-sc2/
     """
+
     def __init__(self, ws, process):
         super().__init__(ws)
         self.__process = process
@@ -159,8 +157,7 @@ class Controller(Protocol):
     async def create_game(self, game_map, players, realtime, random_seed=None):
         assert isinstance(realtime, bool)
         req = sc_pb.RequestCreateGame(
-            local_map=sc_pb.LocalMap(map_path=str(game_map.relative_path)),
-            realtime=realtime,
+            local_map=sc_pb.LocalMap(map_path=str(game_map.relative_path)), realtime=realtime,
         )
         if random_seed is not None:
             req.random_seed = random_seed

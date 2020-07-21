@@ -1,4 +1,5 @@
 import datetime
+
 # import logging
 from loguru import logger
 import math
@@ -52,22 +53,20 @@ class Utl:
         ]
         # Maps yellow to the first info, red to the second, green for the text
         colors = ["yellow", "red", "green"]
-        colored_infos = " ".join(
-            colored(info, color) for info, color in zip(infos, colors)
-        )
+        colored_infos = " ".join(colored(info, color) for info, color in zip(infos, colors))
         print(colored_infos)
         with open(self._config.LOG_FILE, "a+") as f:
             line = " ".join(infos) + "\n"
             f.write(line)
-    
+
     @staticmethod
     def convert_wsl_paths(path):
         """
         :param path:
         :return:
         """
-        new_path = path.replace('C:', '/mnt/c').replace('D:', '/mnt/d').replace("\\", "/").replace(" ", "\ ")
-     
+        new_path = path.replace("C:", "/mnt/c").replace("D:", "/mnt/d").replace("\\", "/").replace(" ", "\ ")
+
         return new_path
 
     # Needed for hashlib md5 function
@@ -88,9 +87,7 @@ class Utl:
                 try:
                     return int(file.read())
                 except ValueError:
-                    self.printout(
-                        f"ERROR: Failed to convert contents of PID file to integer."
-                    )
+                    self.printout(f"ERROR: Failed to convert contents of PID file to integer.")
                     return None
         except Exception as e:
             self.printout(f"ERROR: Failed to read PID file: {e}")

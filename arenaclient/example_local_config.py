@@ -20,6 +20,5 @@ TEMP_PATH = os.path.join(WORKING_DIRECTORY, "tmp")
 
 
 MATCH_SOURCE_CONFIG = FileMatchSource.FileMatchSourceConfig(
-    matches_file=os.path.join(WORKING_DIRECTORY, "matches"),
-    results_file=os.path.join(WORKING_DIRECTORY, "results")
+    matches_file=os.path.join(WORKING_DIRECTORY, "matches"), results_file=os.path.join(WORKING_DIRECTORY, "results")
 )

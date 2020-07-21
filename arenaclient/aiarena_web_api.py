@@ -10,6 +10,7 @@ class AiArenaWebApi:
     """
     Match class to handle the Ai-Arena API
     """
+
     API_MATCHES_ENDPOINT = "/api/arenaclient/matches/"
     API_RESULTS_ENDPOINT = "/api/arenaclient/results/"
 
@@ -28,13 +29,10 @@ class AiArenaWebApi:
         """
         try:
             next_match_response = requests.post(
-                self.API_MATCHES_URL,
-                headers={"Authorization": "Token " + self.API_TOKEN},
+                self.API_MATCHES_URL, headers={"Authorization": "Token " + self.API_TOKEN},
             )
         except ConnectionError:
-            self._utl.printout(
-                f"ERROR: Failed to retrieve game. Connection to website failed. Sleeping."
-            )
+            self._utl.printout(f"ERROR: Failed to retrieve game. Connection to website failed. Sleeping.")
             return None
 
         if next_match_response.status_code >= 400:
@@ -51,6 +49,3 @@ class AiArenaWebApi:
 
         """
         pass
-
-
-

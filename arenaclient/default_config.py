@@ -38,8 +38,7 @@ REPLAYS_DIRECTORY = os.path.join(WORKING_DIRECTORY, "replays")
 BOTS_DIRECTORY = os.path.join(WORKING_DIRECTORY, "bots")
 
 MATCH_SOURCE_CONFIG = FileMatchSource.FileMatchSourceConfig(
-    matches_file=os.path.join(WORKING_DIRECTORY, "matches"),
-    results_file=os.path.join(WORKING_DIRECTORY, "results")
+    matches_file=os.path.join(WORKING_DIRECTORY, "matches"), results_file=os.path.join(WORKING_DIRECTORY, "results")
 )
 
 # STARCRAFT

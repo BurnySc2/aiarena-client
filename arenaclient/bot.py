@@ -33,12 +33,23 @@ class Bot:
             "DotNetCore": [f"{bot_name}.dll", "DotNetCore"],
             "Java": [f"{bot_name}.jar", "Java"],
             "NodeJS": ["main.jar", "NodeJS"],
-            "WSL": [f"{bot_name}", "WSL"]
+            "WSL": [f"{bot_name}", "WSL"],
         }
         return bot_type_map[bot_type][0], bot_type_map[bot_type][1]
 
-    def __init__(self, config, bot_id, name, game_display_id, bot_zip, bot_zip_md5hash, bot_data, bot_data_md5hash,
-                 plays_race, bot_type):
+    def __init__(
+        self,
+        config,
+        bot_id,
+        name,
+        game_display_id,
+        bot_zip,
+        bot_zip_md5hash,
+        bot_data,
+        bot_data_md5hash,
+        plays_race,
+        bot_type,
+    ):
         self._config = config
 
         self._logger = logger
@@ -74,9 +85,7 @@ class Bot:
         """
         self._utl.printout(f"Downloading bot {self.name}")
         # Download bot and save to .zip
-        r = requests.get(
-            self.bot_zip, headers={"Authorization": "Token " + self._config.MATCH_SOURCE_CONFIG.API_TOKEN}
-        )
+        r = requests.get(self.bot_zip, headers={"Authorization": "Token " + self._config.MATCH_SOURCE_CONFIG.API_TOKEN})
         bot_download_path = os.path.join(self._config.TEMP_PATH, self.name + ".zip")
         with open(bot_download_path, "wb") as bot_zip:
             bot_zip.write(r.content)
@@ -94,8 +103,7 @@ class Bot:
             if self.type == "cpplinux":
                 # Chmod 744: rwxr--r--
                 os.chmod(
-                    f"bots/{self.name}/{self.name}",
-                    stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH,
+                    f"bots/{self.name}/{self.name}", stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH,
                 )
 
             if self.get_bot_data_file():
@@ -103,9 +111,7 @@ class Bot:
             else:
                 return False
         else:
-            self._utl.printout(
-                f"MD5 hash ({self.bot_zip_md5hash}) does not match transferred file ({calculated_md5})"
-            )
+            self._utl.printout(f"MD5 hash ({self.bot_zip_md5hash}) does not match transferred file ({calculated_md5})")
             return False
 
     # Get bot data
@@ -135,9 +141,7 @@ class Bot:
                 zip_ref.extractall(f"bots/{self.name}/data")
             return True
         else:
-            self._utl.printout(
-                f"MD5 hash ({self.bot_data_md5hash}) does not match transferred file ({calculated_md5})"
-            )
+            self._utl.printout(f"MD5 hash ({self.bot_data_md5hash}) does not match transferred file ({calculated_md5})")
             return False
 
     def start_bot(self, opponent_id):
@@ -184,7 +188,7 @@ class Bot:
         elif bot_type.lower() == "wsl":
             cmd_line.pop(0)
             cmd_line.insert(0, self._utl.convert_wsl_paths(os.path.join(bot_path, bot_file)))
-            cmd_line.insert(0, 'wsl ')
+            cmd_line.insert(0, "wsl ")
         try:
             os.stat(os.path.join(bot_path, "data"))
         except OSError:
@@ -193,7 +197,7 @@ class Bot:
             os.stat(self._config.REPLAYS_DIRECTORY)
         except OSError:
             os.mkdir(self._config.REPLAYS_DIRECTORY)
-        
+
         if self._config.RUN_LOCAL:
             try:
                 os.stat(self._config.BOT_LOGS_DIRECTORY)
@@ -233,13 +237,24 @@ class BotFactory:
     """
     Factory to create bot object
     """
+
     @staticmethod
     def from_api_data(config, data):
         """
         Creates bot from api data
         """
-        return Bot(config, data["id"], data["name"], data["game_display_id"], data["bot_zip"], data["bot_zip_md5hash"],
-                   data["bot_data"], data["bot_data_md5hash"], data["plays_race"], data["type"])
+        return Bot(
+            config,
+            data["id"],
+            data["name"],
+            data["game_display_id"],
+            data["bot_zip"],
+            data["bot_zip_md5hash"],
+            data["bot_data"],
+            data["bot_data_md5hash"],
+            data["plays_race"],
+            data["type"],
+        )
 
     @staticmethod
     def from_values(config, bot_id, bot_name, bot_race, bot_type):

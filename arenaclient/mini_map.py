@@ -5,11 +5,7 @@ from arenaclient.sc2 import game_state, game_info, cache, game_data, unit
 
 
 class Minimap:
-    def __init__(
-            self,
-            map_scale=3,
-            player_name=None
-    ):
+    def __init__(self, map_scale=3, player_name=None):
         self.map_scale = map_scale
         self._game_info = None
         self._state = None
@@ -39,7 +35,7 @@ class Minimap:
             await self.add_geysers(map_data)
             await self.add_allies(map_data)
             await self.add_enemies(map_data)
-            
+
             flipped = cv2.flip(map_data, 0)
             font = cv2.FONT_HERSHEY_SIMPLEX
             org = (50, 50)
@@ -49,7 +45,7 @@ class Minimap:
             color = (50, 194, 134)
             # Line thickness of 2 px
             thickness = 1
-            
+
             cv2.putText(flipped, self.player_name, org, font, font_scale, color, thickness, cv2.LINE_AA)
             return flipped
 
@@ -60,12 +56,7 @@ class Minimap:
     def empty_map(self):
         map_scale = self.map_scale
         map_data = np.zeros(
-            (
-                self._game_info.map_size[1] * map_scale,
-                self._game_info.map_size[0] * map_scale,
-                3,
-            ),
-            np.uint8,
+            (self._game_info.map_size[1] * map_scale, self._game_info.map_size[0] * map_scale, 3,), np.uint8,
         )
         return map_data
 
@@ -83,15 +74,12 @@ class Minimap:
             cv2.rectangle(
                 map_data,
                 (int(x * self.map_scale), int(y * self.map_scale)),
-                (
-                    int(x * self.map_scale + self.map_scale),
-                    int(y * self.map_scale + self.map_scale),
-                ),
+                (int(x * self.map_scale + self.map_scale), int(y * self.map_scale + self.map_scale),),
                 (color * 18 / 20, color * 19 / 20, color),
                 int(-1),
             )
         return map_data
-    
+
     async def get_score(self):
         score_image = np.copy(self.empty_map)
         i = 0
@@ -100,12 +88,12 @@ class Minimap:
         font_thickness = 1
         color = (50, 194, 134)
         wrapped_text = [
-            'Score: ' + str(self._state.score.score),
-            'Time: ' + f"{int((self._state.game_loop/22.4) // 60):02}:{int((self._state.game_loop/22.4) % 60):02}",
-            'Minerals: ' + str(self._state.common.minerals),
-            'Vespene: ' + str(self._state.common.vespene),
-            'Units Value: ' + str(self._state.score.total_value_units)
-            ]
+            "Score: " + str(self._state.score.score),
+            "Time: " + f"{int((self._state.game_loop/22.4) // 60):02}:{int((self._state.game_loop/22.4) % 60):02}",
+            "Minerals: " + str(self._state.common.minerals),
+            "Vespene: " + str(self._state.common.vespene),
+            "Units Value: " + str(self._state.score.total_value_units),
+        ]
         for line in wrapped_text:
             line = str(line)
             textsize = cv2.getTextSize(line, font, font_size, font_thickness)[0]
@@ -115,27 +103,17 @@ class Minimap:
             y = int((score_image.shape[0] + textsize[1]) / 2) + i * gap
             x = int((score_image.shape[1] - textsize[0]) / 2)
 
-            cv2.putText(score_image, line, (x, y), font,
-                        font_size, 
-                        color, 
-                        font_thickness, 
-                        lineType=cv2.LINE_AA)
+            cv2.putText(score_image, line, (x, y), font, font_size, color, font_thickness, lineType=cv2.LINE_AA)
             i += 1
         return score_image
-    
+
     async def add_minerals(self, map_data):
         for mineral in self._state.mineral_field:
             mine_pos = mineral.position
             cv2.rectangle(
                 map_data,
-                (
-                    int((mine_pos[0] - 0.75) * self.map_scale),
-                    int((mine_pos[1] - 0.25) * self.map_scale),
-                ),
-                (
-                    int((mine_pos[0] + 0.75) * self.map_scale),
-                    int((mine_pos[1] + 0.25) * self.map_scale),
-                ),
+                (int((mine_pos[0] - 0.75) * self.map_scale), int((mine_pos[1] - 0.25) * self.map_scale),),
+                (int((mine_pos[0] + 0.75) * self.map_scale), int((mine_pos[1] + 0.25) * self.map_scale),),
                 self.colors["minerals"],
                 -1,
             )
@@ -145,14 +123,8 @@ class Minimap:
             g_pos = g.position
             cv2.rectangle(
                 map_data,
-                (
-                    int((g_pos[0] - g.radius) * self.map_scale),
-                    int((g_pos[1] - g.radius) * self.map_scale),
-                ),
-                (
-                    int((g_pos[0] + g.radius) * self.map_scale),
-                    int((g_pos[1] + g.radius) * self.map_scale),
-                ),
+                (int((g_pos[0] - g.radius) * self.map_scale), int((g_pos[1] - g.radius) * self.map_scale),),
+                (int((g_pos[0] + g.radius) * self.map_scale), int((g_pos[1] + g.radius) * self.map_scale),),
                 self.colors["geysers"],
                 -1,
             )
@@ -176,10 +148,7 @@ class Minimap:
             else:
                 cv2.circle(
                     map_data,
-                    (
-                        int(ally.position[0] * self.map_scale),
-                        int(ally.position[1] * self.map_scale),
-                    ),
+                    (int(ally.position[0] * self.map_scale), int(ally.position[1] * self.map_scale),),
                     int(ally.radius * self.map_scale),
                     self.colors["ally_units"],
                     -1,
@@ -204,10 +173,7 @@ class Minimap:
             else:
                 cv2.circle(
                     map_data,
-                    (
-                        int(enemy.position[0] * self.map_scale),
-                        int(enemy.position[1] * self.map_scale),
-                    ),
+                    (int(enemy.position[0] * self.map_scale), int(enemy.position[1] * self.map_scale),),
                     int(enemy.radius * self.map_scale),
                     (0, 0, 255),
                     -1,

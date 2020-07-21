@@ -29,12 +29,12 @@ class Unit:
     def position(self) -> Point2:
         """ Returns the 2d position of the unit. """
         return Point2.from_proto(self._proto.pos)
-    
+
     @property_immutable_cache
     def radius(self):
         """ Half of unit size. See https://liquipedia.net/starcraft2/Unit_Statistics_(Legacy_of_the_Void) """
         return self._proto.radius
-    
+
     @property_immutable_cache
     def _type_data(self):
         """ Provides the unit type data. """

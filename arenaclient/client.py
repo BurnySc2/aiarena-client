@@ -21,6 +21,7 @@ class WrongStatusException(Exception):
     """
     Wrong status custom exception
     """
+
     pass
 
 
@@ -28,6 +29,7 @@ class WSClosed(Exception):
     """
     Websocket closed custom exception
     """
+
     pass
 
 
@@ -35,12 +37,7 @@ def init_error(match: MatchSource.Match):
     """
     Init error JSON
     """
-    return {
-            "Result": {
-                match.bot1.name: "InitializationError",
-                match.bot2.name: "InitializationError",
-                }
-            }
+    return {"Result": {match.bot1.name: "InitializationError", match.bot2.name: "InitializationError",}}
 
 
 async def connect(address: str, headers=None):
@@ -65,11 +62,11 @@ def valid_msg(msg):
     @param msg:
     @return:
     """
-    if 'Result' in msg:
+    if "Result" in msg:
         return True
-    elif 'GameTime' in msg:
+    elif "GameTime" in msg:
         return True
-    elif 'AverageFrameTime' in msg:
+    elif "AverageFrameTime" in msg:
         return True
     else:
         return False
@@ -106,7 +103,7 @@ class Client:
         Error result.
         """
         return {"Result": "Error"}
-    
+
     def json_config(self, match):
         """
         Game JSON config to be sent to proxy
@@ -123,17 +120,17 @@ class Client:
                 "MaxFrameTime": self._config.MAX_FRAME_TIME,
                 "Strikes": self._config.STRIKES,
                 "RealTime": self._config.REALTIME,
-                "Visualize": self._config.VISUALIZE
+                "Visualize": self._config.VISUALIZE,
             }
         }
-    
+
     @property
     def address(self):
         """
         Address for proxy.
         """
         return f"http://{self._config.SC2_PROXY['HOST']}:{str(self._config.SC2_PROXY['PORT'])}/sc2api"
-    
+
     @property
     def headers(self):
         """
@@ -156,10 +153,7 @@ class Client:
             # todo: work out a way to fix this
             return
         self._utl.printout(f"Next match: {match.id}")
-        result = await self.run_match(
-            match_count,
-            match
-        )
+        result = await self.run_match(match_count, match)
         self._match_source.submit_result(match, result)
         return
 
@@ -182,18 +176,18 @@ class Client:
 
         # self._logger.debug(f"Killing current server")
         self.kill_current_server()
-    
+
     async def receive(self):
         """
         Receive a message from the websocket connection.
         @return:
         """
-        assert(self._ws is not None)
+        assert self._ws is not None
         msg = await self._ws.receive()
         if msg.type == aiohttp.WSMsgType.CLOSED:
             raise WSClosed("Websocket connection closed")
         return msg.json()
-    
+
     async def send(self, msg: str):
         """
         Send a meesage to the websocket connection
@@ -249,14 +243,14 @@ class Client:
 
             if await self.connected():
                 self._logger.debug(f"Starting bots...")
-                bot1_process, bot1_pid = await self.start_bot(match.bot1,
-                                                              match.bot2.bot_json.get("botID", self.get_opponent_id(
-                                                                  match.bot2.name)))
+                bot1_process, bot1_pid = await self.start_bot(
+                    match.bot1, match.bot2.bot_json.get("botID", self.get_opponent_id(match.bot2.name))
+                )
                 pids.append(bot1_pid)
                 if bot1_process is not None:
-                    bot2_process, bot2_pid = await self.start_bot(match.bot2,
-                                                                  match.bot1.bot_json.get("botID", self.get_opponent_id(
-                                                                      match.bot2.name)))
+                    bot2_process, bot2_pid = await self.start_bot(
+                        match.bot2, match.bot1.bot_json.get("botID", self.get_opponent_id(match.bot2.name))
+                    )
                     pids.append(bot2_pid)
                     if bot2_process is None:
                         self._logger.debug(f"Failed to launch {match.bot2.name}")
@@ -346,26 +340,21 @@ class Client:
                 if valid_msg(msg):
                     result.parse_result(msg)
 
-                if 'Error' in msg:
+                if "Error" in msg:
                     self._utl.printout(msg)
                     if not result.has_result():
                         result.parse_result(self.error)
                     await self._ws.close()
                     await self._session.close()
 
-                if 'StillAlive' in msg:
+                if "StillAlive" in msg:
                     if bot1_process.poll():
                         self._utl.printout("Bot1 Crash")
                         await self._ws.close()
                         await self._session.close()
                         if not result.has_result():
                             result.parse_result(
-                                {
-                                    "Result": {
-                                        match.bot1.name: "Result.Crashed",
-                                        match.bot2.name: "Result.Victory",
-                                    }
-                                }
+                                {"Result": {match.bot1.name: "Result.Crashed", match.bot2.name: "Result.Victory",}}
                             )
                         try:
                             bot1_process.communicate(timeout=0.2)
@@ -383,12 +372,7 @@ class Client:
                         await self._session.close()
                         if not result.has_result():
                             result.parse_result(
-                                {
-                                        "Result": {
-                                            match.bot1.name: "Result.Victory",
-                                            match.bot2.name: "Result.Crashed",
-                                        }
-                                }
+                                {"Result": {match.bot1.name: "Result.Victory", match.bot2.name: "Result.Crashed",}}
                             )
                         try:
                             bot1_process.communicate(timeout=0.2)
@@ -401,9 +385,7 @@ class Client:
                         self._utl.pid_cleanup(pids)
 
                 if complete(msg):
-                    result.parse_result(
-                        {"TimeStamp": datetime.datetime.utcnow().strftime("%d-%m-%Y %H-%M-%SUTC")}
-                    )
+                    result.parse_result({"TimeStamp": datetime.datetime.utcnow().strftime("%d-%m-%Y %H-%M-%SUTC")})
                     await self._ws.close()
                     await self._session.close()
 
@@ -461,9 +443,7 @@ class Client:
             while counter <= 100:
                 counter += 1
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                result = sock.connect_ex(
-                    (self._config.SC2_PROXY["HOST"], self._config.SC2_PROXY["PORT"])
-                )
+                result = sock.connect_ex((self._config.SC2_PROXY["HOST"], self._config.SC2_PROXY["PORT"]))
                 if result == 0:
                     break
                 if counter == 100:
@@ -477,9 +457,9 @@ class Client:
             self._logger.error(str(traceback.format_exc()))
             result = Result(match, self._config)
             result.parse_result(self.error)
-        
+
         logger.info(result)
-        
+
         return result
 
     async def run(self):
@@ -502,7 +482,8 @@ class Client:
             count = 0
 
             while self._match_source.has_next() and (
-                    count < self._config.ROUNDS_PER_RUN or self._config.ROUNDS_PER_RUN == -1):
+                count < self._config.ROUNDS_PER_RUN or self._config.ROUNDS_PER_RUN == -1
+            ):
                 try:
                     if self._config.CLEANUP_BETWEEN_ROUNDS:
                         self.cleanup()

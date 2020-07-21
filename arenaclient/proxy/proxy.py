@@ -41,12 +41,12 @@ class Proxy:
     """
 
     def __init__(
-            self,
-            port: int = None,
-            game_created: bool = False,
-            player_name: str = None,
-            opponent_name: str = None,
-            supervisor: Supervisor = None,
+        self,
+        port: int = None,
+        game_created: bool = False,
+        player_name: str = None,
+        opponent_name: str = None,
+        supervisor: Supervisor = None,
     ):
         self.supervisor: Supervisor = supervisor
         self.average_time: float = 0
@@ -75,7 +75,7 @@ class Proxy:
         self.disable_debug: bool = self.supervisor.disable_debug
         self.real_time: bool = self.supervisor.real_time
         self.visualize: bool = self.supervisor.visualize
-        self.render: bool = False 
+        self.render: bool = False
         self.mini_map: Minimap = Minimap()
         self.observation_loaded: bool = False
         self.game_info_loaded: bool = False
@@ -84,11 +84,11 @@ class Proxy:
         self.process: subprocess.Popen = ...
         self.to_close = set()
         self.data_requested: bool = False
-    
+
     @property
     def url(self):
         return "ws://localhost:" + str(self.port) + "/sc2api"
-    
+
     @property
     def players(self):
         return [
@@ -99,7 +99,7 @@ class Proxy:
     @property
     def controller(self):
         return Controller(self.ws_p2s, self.process)
-    
+
     @property
     def empty_response(self):
         data_p2s = sc_pb.Response()
@@ -123,13 +123,12 @@ class Proxy:
             tb = traceback.format_exc()
             logger.error(f"Exception {e}: {tb}")
 
-            
         try:
             await self.ws_c2p.close()
         except Exception as e:
             tb = traceback.format_exc()
             logger.error(f"Exception {e}: {tb}")
-            
+
         try:
             await self.ws_p2s.close()
         except Exception as e:
@@ -198,15 +197,10 @@ class Proxy:
         Used for detecting ties. Checks if _game_loops > max_game_time.
         :return:
         """
-        if (
-                self.max_game_time
-                and self._game_loops > self.max_game_time
-        ):
+        if self.max_game_time and self._game_loops > self.max_game_time:
             logger.debug("Tie detected")
             self._result = "Result.Tie"
-            self._game_time_seconds = (
-                    self._game_loops / 22.4
-            )
+            self._game_time_seconds = self._game_loops / 22.4
 
     async def check_for_result(self):
         """
@@ -214,24 +208,17 @@ class Proxy:
         self._result, self._game_loops from the observation.
         :return:
         """
-    
+
         try:
             result = await self._execute(observation=sc_pb.RequestObservation())
             if not self.player_id:
-                self.player_id = (
-                    result.observation.observation.player_common.player_id
-                )
+                self.player_id = result.observation.observation.player_common.player_id
 
             if result.observation.player_result:
-                player_id_to_result = {
-                    pr.player_id: Result(pr.result)
-                    for pr in result.observation.player_result
-                }
+                player_id_to_result = {pr.player_id: Result(pr.result) for pr in result.observation.player_result}
                 self._result = player_id_to_result[self.player_id]
                 self._game_loops = result.observation.observation.game_loop
-                self._game_time_seconds = (
-                        result.observation.observation.game_loop / 22.4
-                )
+                self._game_time_seconds = result.observation.observation.game_loop / 22.4
 
         except Exception as e:
             tb = traceback.format_exc()
@@ -316,15 +303,15 @@ class Proxy:
                     request.join_game.options.render.resolution.y = 250
                     request.join_game.options.render.minimap_resolution.x = 50
                     request.join_game.options.render.minimap_resolution.y = 50
-               
+
                 self.joined = True
                 return request.SerializeToString()
 
             elif self.disable_debug and request.HasField("debug"):
                 logger.debug("Debug interface used")
                 return False
-            
-            elif not self.data_requested and request.HasField('data'):
+
+            elif not self.data_requested and request.HasField("data"):
                 request.data.unit_type_id = True
                 request.data.upgrade_id = True
                 request.data.buff_id = True
@@ -332,9 +319,9 @@ class Proxy:
                 request.data.ability_id = True
                 self.data_requested = True
                 return request.SerializeToString()
-            
+
             elif request.HasField("leave_game"):
-                logger.debug(f'{self.player_name} has issued a LeaveGameRequest')
+                logger.debug(f"{self.player_name} has issued a LeaveGameRequest")
 
                 self._surrender = True
                 self._result = "Result.Defeat"
@@ -346,12 +333,8 @@ class Proxy:
 
         if self._result:
             try:
-                if {
-                    self.player_name: self.average_time / self._game_loops
-                } not in self.supervisor.average_frame_time:
-                    self.supervisor.average_frame_time = {
-                        self.player_name: self.average_time / self._game_loops
-                    }
+                if {self.player_name: self.average_time / self._game_loops} not in self.supervisor.average_frame_time:
+                    self.supervisor.average_frame_time = {self.player_name: self.average_time / self._game_loops}
             except ZeroDivisionError as e:
                 tb = traceback.format_exc()
                 logger.error(f"Exception {e}: {tb}")
@@ -365,7 +348,7 @@ class Proxy:
                 self.killed = True
                 return request.SerializeToString()
         return msg.data
-    
+
     async def process_response(self, msg):
         """
         Uses responses from SC2 to populate self._game_loops instead of sending extra requests to SC2. Also calls
@@ -376,7 +359,7 @@ class Proxy:
         response = sc_pb.Response()
         response.ParseFromString(msg)
         visualize_step = self._game_loops % self.visualize_step_count == 0 or self._game_loops < 10
-        if response.HasField('observation'):
+        if response.HasField("observation"):
             self._game_loops = response.observation.observation.game_loop
             if self.render:
                 raise NotImplemented
@@ -385,22 +368,27 @@ class Proxy:
                 self.observation_loaded = True
                 await self.mini_map.load_state(response)
 
-        elif self.visualize and not self.game_info_loaded and response.HasField('game_info'):
+        elif self.visualize and not self.game_info_loaded and response.HasField("game_info"):
             self.game_info_loaded = True
             self.mini_map.load_game_info(response)
-        
-        elif self.visualize and not self.game_data_loaded and response.HasField('data'):
+
+        elif self.visualize and not self.game_data_loaded and response.HasField("data"):
             self.game_data_loaded = True
             self.mini_map.load_game_data(response)
 
-        if self.visualize and self.game_info_loaded and self.observation_loaded and self.game_data_loaded \
-                and visualize_step:
+        if (
+            self.visualize
+            and self.game_info_loaded
+            and self.observation_loaded
+            and self.game_data_loaded
+            and visualize_step
+        ):
 
             self.mini_map.player_name = self.player_name
             image = await self.mini_map.draw_map()
             score = await self.mini_map.get_score()
-            self.supervisor.images[self.player_name]['image'] = image
-            self.supervisor.images[self.player_name]['score'] = score
+            self.supervisor.images[self.player_name]["image"] = image
+            self.supervisor.images[self.player_name]["score"] = score
 
         if response.status > 3:
             await self.check_for_result()
@@ -438,16 +426,16 @@ class Proxy:
         logger.debug("Starting client session")
         start_time = time.monotonic()
 
-        logger.debug("Websocket client connection starting")              
-        
-        # Set to 30 to detect internal bot crashes  
+        logger.debug("Websocket client connection starting")
+
+        # Set to 30 to detect internal bot crashes
         self.ws_c2p = aiohttp.web.WebSocketResponse(receive_timeout=30, max_msg_size=0)  # 0 == Unlimited
         await self.ws_c2p.prepare(request)
-        
+
         # Clean-up
         await self.on_end(self.ws_c2p)
         request.app["websockets"].add(self.ws_c2p)  # Add bot client to WeakSet for use in detecting amount of
-        # clients connected 
+        # clients connected
         self.supervisor.pids = self.process.pid  # Add SC2 to supervisor pid list for use in cleanup
 
         logger.debug("Websocket connection: " + self.url)
@@ -484,11 +472,12 @@ class Proxy:
                     self.current_loop_frame_time = 0
 
                 else:
-                    self.current_loop_frame_time += (time.monotonic() - start_time)
+                    self.current_loop_frame_time += time.monotonic() - start_time
 
                 if self.no_of_strikes > self.strikes:  # Bot exceeded max_frame_time, surrender on behalf of bot
-                    logger.debug(f'{self.player_name} exceeded {self.max_frame_time} ms, {self.no_of_strikes} times '
-                                 f'in a row')
+                    logger.debug(
+                        f"{self.player_name} exceeded {self.max_frame_time} ms, {self.no_of_strikes} times " f"in a row"
+                    )
 
                     self._surrender = True
                     self._result = "Result.Timeout"
@@ -498,18 +487,14 @@ class Proxy:
                         req = await self.process_request(msg)
 
                         if not req:  # If process_request returns False, the request has been
-                            # nullified. Return an empty response instead. TODO: Do this better                            
+                            # nullified. Return an empty response instead. TODO: Do this better
                             await self.ws_c2p.send_bytes(self.empty_response)
                         else:  # Nothing wrong with the request. Forward to SC2
                             await self.ws_p2s.send_bytes(req)
                             try:
                                 data_p2s = await self.ws_p2s.receive_bytes()  # Receive response from SC2
                                 await self.process_response(data_p2s)
-                            except (
-                                    asyncio.CancelledError,
-                                    asyncio.TimeoutError,
-                                    Exception
-                            ) as e:
+                            except (asyncio.CancelledError, asyncio.TimeoutError, Exception) as e:
                                 tb = traceback.format_exc()
                                 logger.error(f"Exception {e}: {tb}")
                             await self.ws_c2p.send_bytes(data_p2s)  # Forward response to bot
@@ -543,12 +528,8 @@ class Proxy:
                 tb = traceback.format_exc()
                 logger.error(f"Exception {e}: {tb}")
             try:
-                if {
-                    self.player_name: self.average_time / self._game_loops
-                } not in self.supervisor.average_frame_time:
-                    self.supervisor.average_frame_time = {
-                        self.player_name: self.average_time / self._game_loops
-                    }
+                if {self.player_name: self.average_time / self._game_loops} not in self.supervisor.average_frame_time:
+                    self.supervisor.average_frame_time = {self.player_name: self.average_time / self._game_loops}
             except ZeroDivisionError:
                 self.supervisor.average_frame_time = {self.player_name: 0}
             if self.visualize and False:  # TODO: fix for new visualization
@@ -562,8 +543,7 @@ class Proxy:
                 flipped = cv2.resize(img, (500, 500), cv2.INTER_NEAREST)
                 cv2.putText(flipped, self.player_name, org, font, font_scale, color, thickness, cv2.LINE_AA)
                 if self._result:
-                    cv2.putText(flipped, str(self._result), (50, 200), font, font_scale, color, thickness,
-                                cv2.LINE_AA)
+                    cv2.putText(flipped, str(self._result), (50, 200), font, font_scale, color, thickness, cv2.LINE_AA)
 
             self.supervisor.result = dict({self.player_name: self._result})
 

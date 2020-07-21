@@ -14,7 +14,7 @@ from aiohttp_jinja2 import render_template
 from arenaclient.client import Client
 from arenaclient.matches import FileMatchSource
 
-AI_ARENA_URL = r'https://ai-arena.net/'
+AI_ARENA_URL = r"https://ai-arena.net/"
 output_frame = None
 
 
@@ -22,6 +22,7 @@ class Bot:
     """
     Class for handling bots selected in the gui.
     """
+
     def __init__(self, bot):
         self.name = bot
         self.type = None
@@ -55,33 +56,33 @@ class Bot:
 
         :return:
         """
-        self.name = self.name.replace(' (AI-Arena)', '')
+        self.name = self.name.replace(" (AI-Arena)", "")
         r = requests.get(
-            AI_ARENA_URL + f'api/bots/?format=json&name={self.name}',
-            headers={"Authorization": "Token " + self.settings['API_token']}
+            AI_ARENA_URL + f"api/bots/?format=json&name={self.name}",
+            headers={"Authorization": "Token " + self.settings["API_token"]},
         )
         data = json.loads(r.text)
 
-        self.type = data['results'][0]['type']
-        md5_hash = data['results'][0]['bot_zip_md5hash']
-        path = Path(os.path.join(self.settings['bot_directory_location'], 'Bot Zip Files'))
+        self.type = data["results"][0]["type"]
+        md5_hash = data["results"][0]["bot_zip_md5hash"]
+        path = Path(os.path.join(self.settings["bot_directory_location"], "Bot Zip Files"))
         if not path.is_dir():
             path.mkdir()
 
-        if os.path.isdir(os.path.join(self.settings['bot_directory_location'], self.name)):
+        if os.path.isdir(os.path.join(self.settings["bot_directory_location"], self.name)):
             if not path.is_dir():
                 path.mkdir()
-            if Path(os.path.join(path, self.name + '.zip')).exists():
-                with open(os.path.join(path, self.name + '.zip'), "rb") as bot_zip:
+            if Path(os.path.join(path, self.name + ".zip")).exists():
+                with open(os.path.join(path, self.name + ".zip"), "rb") as bot_zip:
                     calculated_md5 = hashlib.md5(bot_zip.read()).hexdigest()
                 if md5_hash == calculated_md5:
-                    logger.debug('Local MD5 matches ai-arena MD5. Do not download')
+                    logger.debug("Local MD5 matches ai-arena MD5. Do not download")
                     return
-        bot_zip = data['results'][0]['bot_zip']
-        r = requests.get(bot_zip, headers={"Authorization": "Token " + self.settings['API_token']}, stream=True)
+        bot_zip = data["results"][0]["bot_zip"]
+        r = requests.get(bot_zip, headers={"Authorization": "Token " + self.settings["API_token"]}, stream=True)
 
         bot_download_path = os.path.join(path, self.name + ".zip")
-        logger.debug(f'Downloading bot to {bot_download_path}')
+        logger.debug(f"Downloading bot to {bot_download_path}")
         with open(bot_download_path, "wb") as bot_zip:
             for chunk in r.iter_content(chunk_size=10 * 1024):
                 bot_zip.write(chunk)
@@ -89,7 +90,7 @@ class Bot:
 
         # Extract to bot folder
         with zipfile.ZipFile(bot_download_path, "r") as zip_ref:
-            zip_ref.extractall(os.path.join(self.settings['bot_directory_location'], self.name))
+            zip_ref.extractall(os.path.join(self.settings["bot_directory_location"], self.name))
 
     def extract_bot_data(self):
         """
@@ -98,13 +99,13 @@ class Bot:
         """
         settings_file = load_settings_from_file()
         self.settings = convert_wsl_paths(settings_file)
-        if ' (AI-Arena)' in self.name:
+        if " (AI-Arena)" in self.name:
             logger.debug("Download bot")
             self.download_bot()
             return
 
-        with open(os.path.join(self.settings['bot_directory_location'], self.name, 'ladderbots.json')) as f:
-            self.type = self.find_values('Type', f.read())[0]
+        with open(os.path.join(self.settings["bot_directory_location"], self.name, "ladderbots.json")) as f:
+            self.type = self.find_values("Type", f.read())[0]
             logger.debug(f"{self.name}'s type ={self.type}")
 
 
@@ -112,10 +113,11 @@ class GameRunner:
     """
     Class for controlling the games that need to run.
     """
+
     def __init__(self):
         self._game_running = False  # Variable that shows if a game is running or not. Keeps the gui from starting
         # another game if the current game has not finished yet.
-    
+
     async def game_running(self, request):
         resp = web.WebSocketResponse()
 
@@ -123,10 +125,10 @@ class GameRunner:
         while True:
             await asyncio.sleep(1)
             if self._game_running:
-                await resp.send_str('Game(s) running')
+                await resp.send_str("Game(s) running")
             else:
-                await resp.send_str('Idle')
-    
+                await resp.send_str("Idle")
+
     async def run_local_game(self, games, data):
         """
         Interacts with the arenaclient to start and run the games sequentially.
@@ -135,12 +137,12 @@ class GameRunner:
         :param data: Settings for the game.
         :return:
         """
-        if system() == 'Windows':
-            config.PYTHON = 'python'
+        if system() == "Windows":
+            config.PYTHON = "python"
         settings = convert_wsl_paths(load_settings_from_file())
         logger.debug(f"Settings ={settings}")
-        config.REPLAYS_DIRECTORY = settings['replay_directory_location']
-        config.BOTS_DIRECTORY = settings['bot_directory_location']
+        config.REPLAYS_DIRECTORY = settings["replay_directory_location"]
+        config.BOTS_DIRECTORY = settings["bot_directory_location"]
         if not os.path.isdir(config.BOTS_DIRECTORY):
             logger.error(f"{config.BOTS_DIRECTORY} does not exist")
         config.ROUNDS_PER_RUN = 1
@@ -149,7 +151,8 @@ class GameRunner:
         logger.debug(f"Realtime={config.REALTIME}, Visualize={config.VISUALIZE}")
         config.MATCH_SOURCE_CONFIG = FileMatchSource.FileMatchSourceConfig(
             matches_file=os.path.join(os.path.dirname(os.path.realpath(__file__)), "matches"),
-            results_file=os.path.join(os.path.dirname(os.path.realpath(__file__)), 'results.json'))
+            results_file=os.path.join(os.path.dirname(os.path.realpath(__file__)), "results.json"),
+        )
         self._game_running = True
         for key in games:
             with open(config.MATCH_SOURCE_CONFIG.MATCHES_FILE, "w+") as f:
@@ -172,10 +175,10 @@ class GameRunner:
         data = await request.post()
         game_data = {}
 
-        bot1_list = data.getall('Bot1[]')
-        bot2_list = data.getall('Bot2[]')
+        bot1_list = data.getall("Bot1[]")
+        bot2_list = data.getall("Bot2[]")
         chosen_maps = data.getall("Map[]")
-        iterations = int(data['Iterations'])
+        iterations = int(data["Iterations"])
 
         for _ in range(iterations):
             for maps in chosen_maps:
@@ -185,10 +188,10 @@ class GameRunner:
                     bot1 = Bot(bot1)
                     for bot2 in bot2_list:
                         bot2 = Bot(bot2)
-                        game = f'{bot1.name},T,{bot1.type},{bot2.name},T,{bot2.type},{maps}'
+                        game = f"{bot1.name},T,{bot1.type},{bot2.name},T,{bot2.type},{maps}"
                         games.append(game)
-        game_data['Visualize'] = data.get("Visualize", "false") == "true"
-        game_data['Realtime'] = data.get('Realtime', 'false') == 'true'
+        game_data["Visualize"] = data.get("Visualize", "false") == "true"
+        game_data["Realtime"] = data.get("Realtime", "false") == "true"
 
         asyncio.create_task(self.run_local_game(games, game_data))
 
@@ -210,28 +213,28 @@ def save_settings_to_file(data):
     :param data: Form data from the GUI
     :return:
     """
-    data['bot_directory_location'] = data.get('bot_directory_location', None)
-    
-    if not verify_path(data['bot_directory_location']):
+    data["bot_directory_location"] = data.get("bot_directory_location", None)
+
+    if not verify_path(data["bot_directory_location"]):
         logger.error(f"{data['bot_directory_location']} is not a valid path")
-    
-    data['sc2_directory_location'] = data.get('sc2_directory_location', None)
-    
-    if not verify_path(data['sc2_directory_location']):
+
+    data["sc2_directory_location"] = data.get("sc2_directory_location", None)
+
+    if not verify_path(data["sc2_directory_location"]):
         logger.error(f"{data['sc2_directory_location']} is not a valid path")
-    
-    data['replay_directory_location'] = data.get('replay_directory_location', None)
-    
-    if not verify_path(data['replay_directory_location']):
+
+    data["replay_directory_location"] = data.get("replay_directory_location", None)
+
+    if not verify_path(data["replay_directory_location"]):
         logger.error(f"{data['replay_directory_location']} is not a valid path")
 
-    data['max_game_time'] = data.get('max_game_time', 60486)
-    data['allow_debug'] = data.get('allow_debug', 'Off')
-    data['visualize'] = data.get('visualize', 'Off')
+    data["max_game_time"] = data.get("max_game_time", 60486)
+    data["allow_debug"] = data.get("allow_debug", "Off")
+    data["visualize"] = data.get("visualize", "Off")
     file_settings = None
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'settings.json')
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.json")
     if os.path.isfile(path):
-        with open(path, 'r') as settings_file:
+        with open(path, "r") as settings_file:
             try:
                 file_settings = json.load(settings_file)
                 for x, y in data.items():
@@ -241,8 +244,8 @@ def save_settings_to_file(data):
             except:
                 pass
     data = file_settings if file_settings else data
-    with open(path, 'w+') as settings_file:
-        print('write')
+    with open(path, "w+") as settings_file:
+        print("write")
         json.dump(data, settings_file)
 
 
@@ -251,9 +254,9 @@ def load_settings_from_file():
     Loads the settings from the settings.json file.
     :return:
     """
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'settings.json')
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.json")
     if os.path.isfile(path):
-        with open(path, 'r') as settings_file:
+        with open(path, "r") as settings_file:
             try:
                 data = json.loads(settings_file.read())
                 return data
@@ -313,9 +316,9 @@ async def clear_results(request):
     :param request:
     :return:
     """
-    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'results.json'), 'w') as f:
-        data = json.loads('{}')
-        data['Results'] = []
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "results.json"), "w") as f:
+        data = json.loads("{}")
+        data["Results"] = []
         f.write(json.dumps(data))
     return web.Response(text="OK")
 
@@ -332,7 +335,7 @@ async def handle_data(request):
         settings_data[key] = data.getone(key)
 
     save_settings_to_file(settings_data)
-    location = request.app.router['index'].url_for()
+    location = request.app.router["index"].url_for()
     raise web.HTTPFound(location=location)
 
 
@@ -348,13 +351,13 @@ def convert_wsl_paths(json_data):
     if system() == "Windows":
 
         for x, y in json_data.items():
-            replaced_string = y.replace('/mnt/c', 'C:').replace('/mnt/d', 'D:')
+            replaced_string = y.replace("/mnt/c", "C:").replace("/mnt/d", "D:")
             json_data_modified[x] = replaced_string
 
     if system() == "Linux":
 
         for x, y in json_data.items():
-            replaced_string = y.replace('C:', '/mnt/c').replace('D:', '/mnt/d')
+            replaced_string = y.replace("C:", "/mnt/c").replace("D:", "/mnt/d")
             json_data_modified[x] = replaced_string
     return json_data_modified
 
@@ -375,9 +378,9 @@ async def get_results(request):
     :return:
     """
     try:
-        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'results.json'), 'r') as f:
+        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "results.json"), "r") as f:
             data = json.loads(f.read())
-            return web.json_response(data.get('Results', []))
+            return web.json_response(data.get("Results", []))
     except Exception as e:
         return str(e)
 
@@ -389,19 +392,19 @@ async def get_bots(request):
     :param request:
     :return:
     """
-    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'settings.json')) as f:
-        directory = convert_wsl_paths(json.load(f))['bot_directory_location']
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.json")) as f:
+        directory = convert_wsl_paths(json.load(f))["bot_directory_location"]
 
     if not os.path.isdir(directory):
         return web.json_response({"Error": "Please enter a directory"})
 
     if len(os.listdir(directory)) < 1:
         return web.json_response({"Error": f"No bots found in {directory}"})
-    bot_json = {'Bots': []}
+    bot_json = {"Bots": []}
     for x in os.listdir(directory):
         path = os.path.join(directory, x)
-        if os.path.isfile(os.path.join(path, 'ladderbots.json')):
-            bot_json['Bots'].append(x)
+        if os.path.isfile(os.path.join(path, "ladderbots.json")):
+            bot_json["Bots"].append(x)
 
     return web.json_response(bot_json)
 
@@ -414,13 +417,15 @@ async def get_arena_bots(request):
     """
     r = web.Response()
     data = load_settings_from_file()
-    token = data.get('API_token', '')
-    if token == '':
+    token = data.get("API_token", "")
+    if token == "":
         return "No token"
     else:
         async with ClientSession() as session:
-            async with session.get(AI_ARENA_URL + r'api/bots/?&format=json&bot_zip_publicly_downloadable=true',
-                                   headers={"Authorization": "Token " + token}) as resp:
+            async with session.get(
+                AI_ARENA_URL + r"api/bots/?&format=json&bot_zip_publicly_downloadable=true",
+                headers={"Authorization": "Token " + token},
+            ) as resp:
                 r.body = await resp.text()
 
         return r
@@ -431,8 +436,8 @@ def get_local_maps():
     Searches sc2_directory_location path for all files ending in .SC2Map and returns a list of maps.
     :return:
     """
-    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'settings.json')) as f:
-        directory = convert_wsl_paths(json.load(f))['sc2_directory_location']
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.json")) as f:
+        directory = convert_wsl_paths(json.load(f))["sc2_directory_location"]
 
     if not os.path.isdir(directory):
         return ["Please select a directory on the settings page."]
@@ -460,7 +465,7 @@ async def get_maps(request):
     :param request:
     :return:
     """
-    return web.json_response({'Maps': get_local_maps()})
+    return web.json_response({"Maps": get_local_maps()})
 
 
 async def replays(request):
@@ -469,7 +474,7 @@ async def replays(request):
     :param request:
     :return:
     """
-    replay = os.path.join(config.REPLAYS_DIRECTORY, request.match_info.get('replay'))
+    replay = os.path.join(config.REPLAYS_DIRECTORY, request.match_info.get("replay"))
     if os.path.isfile(replay):
         return web.FileResponse(replay)
     else:
@@ -482,8 +487,9 @@ async def logs(request):
     :param request:
     :return:
     """
-    log = os.path.join(config.BOT_LOGS_DIRECTORY, request.match_info.get('match_id'),
-                       request.match_info.get('bot_name'), 'stderr.log')
+    log = os.path.join(
+        config.BOT_LOGS_DIRECTORY, request.match_info.get("match_id"), request.match_info.get("bot_name"), "stderr.log"
+    )
     if os.path.isfile(log):
         return web.FileResponse(log)
     else:

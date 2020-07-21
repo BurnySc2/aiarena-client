@@ -44,7 +44,7 @@ class Supervisor:
     @property
     def real_time(self):
         return self._real_time
-    
+
     @property
     def visualize(self):
         return self._visualize
@@ -154,35 +154,35 @@ class Supervisor:
         :return:
         """
         await self._ws.send_json(message)
-    
+
     async def build_montage(self):
         try:
-            images = [x['image'] for x in self.images.values()] 
-            scores = [x['score'] for x in self.images.values()] 
+            images = [x["image"] for x in self.images.values()]
+            scores = [x["score"] for x in self.images.values()]
         except KeyError:
             images = []
             scores = []
-        
+
         if images:
             col1 = np.hstack(images)
             col2 = np.hstack(scores)
             final = np.vstack([col1, col2])
-            
+
             return final
         else:
             return None
-    
+
     async def results_checker(self, args=None):
         if len(self._result) == 1:
             for x in self._result:
                 for key, value in x.items():
-                    if value == 'Result.Crashed':
+                    if value == "Result.Crashed":
                         if key == self.player1:
-                            self._result.append({self.player2: 'Result.Victory'})
+                            self._result.append({self.player2: "Result.Victory"})
                         else:
-                            self._result.append({self.player1: 'Result.Victory'})
+                            self._result.append({self.player1: "Result.Victory"})
                         break
-    
+
     async def cleanup(self, request):
         logger.debug("Discarding supervisor")
         request.app["websockets"].discard(self._ws)
@@ -229,8 +229,7 @@ class Supervisor:
                         self._replay_path = config["ReplayPath"]
                         self._match_id = config["MatchID"]
                         self._replay_name = os.path.join(
-                            self._replay_path,
-                            f"{self._match_id}_{self.player1}_vs_{self.player2}.SC2Replay",
+                            self._replay_path, f"{self._match_id}_{self.player1}_vs_{self.player2}.SC2Replay",
                         )
                         self._disable_debug = config["DisableDebug"]
                         self._real_time = config["RealTime"]
@@ -258,7 +257,7 @@ class Supervisor:
                 if len(self._result) == 1:
                     for x in self._result:
                         for key, value in x.items():
-                            if value == 'Result.Crashed':
+                            if value == "Result.Crashed":
                                 Timer(40, self.results_checker, args=[])
                                 break
 
@@ -268,19 +267,11 @@ class Supervisor:
 
             final_result = {
                 self.player1: next(
-                    (
-                        str(item.get(self.player1, None))
-                        for item in self._result
-                        if item.get(self.player1, None)
-                    ),
+                    (str(item.get(self.player1, None)) for item in self._result if item.get(self.player1, None)),
                     "Result.Crashed",
                 ),
                 self.player2: next(
-                    (
-                        str(item.get(self.player2, None))
-                        for item in self._result
-                        if item.get(self.player2, None)
-                    ),
+                    (str(item.get(self.player2, None)) for item in self._result if item.get(self.player2, None)),
                     "Result.Crashed",
                 ),
             }

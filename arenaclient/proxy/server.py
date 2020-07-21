@@ -13,8 +13,10 @@ from aiohttp import web, MultipartWriter
 
 from arenaclient.proxy import frontend
 import arenaclient.default_config as cfg
+
 try:
     import uvloop
+
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except ModuleNotFoundError:
     print("Uvloop not found, using default asyncio")
@@ -56,26 +58,24 @@ class ConnectionHandler:
         expected = args[1]
         if not len(request.app["websockets"]) > expected:
             logger.debug("Bots did not connect in time")
-            await self.supervisor.send_message(
-                dict({"Bot": "Bot did not connect in time"})
-            )
+            await self.supervisor.send_message(dict({"Bot": "Bot did not connect in time"}))
 
     async def stream_handler(self, request):
         import numpy as np
         import cv2
+
         boundary = "boundarydonotcross"
-        resp = web.StreamResponse(status=200, reason='OK', headers={
-            'Content-Type': 'multipart/x-mixed-replace; '
-                            'boundary=--%s' % boundary,
-        })
+        resp = web.StreamResponse(
+            status=200, reason="OK", headers={"Content-Type": "multipart/x-mixed-replace; " "boundary=--%s" % boundary,}
+        )
         await resp.prepare(request)
-        
+
         while True:
             try:
                 await asyncio.sleep(0.1)
                 if self.supervisor and self.supervisor.images is not None:
                     output_frame = await self.supervisor.build_montage()
-                    
+
                     # await ws.send_bytes(self.supervisor.image)
                 else:
                     await asyncio.sleep(0.1)
@@ -86,13 +86,11 @@ class ConnectionHandler:
 
                 # encode the frame in JPEG format
                 _, encoded_image = cv2.imencode(".jpg", output_frame)
-                with MultipartWriter('image/jpeg', boundary=boundary) as mpwriter:
+                with MultipartWriter("image/jpeg", boundary=boundary) as mpwriter:
                     data = encoded_image.tostring()
-                    mpwriter.append(data, {
-                        'Content-Type': 'image/jpeg'
-                    })
+                    mpwriter.append(data, {"Content-Type": "image/jpeg"})
                     await mpwriter.write(resp, close_boundary=False)
-            
+
             except asyncio.CancelledError:
                 pass
 
@@ -157,22 +155,23 @@ def on_start():
     # Create needed files
     import json
     from pathlib import Path
-    settings_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'settings.json')
-    results_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'results.json')
-    
+
+    settings_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.json")
+    results_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "results.json")
+
     if not os.path.isfile(settings_file):
         data = {
             "bot_directory_location": "",
             "sc2_directory_location": "",
-            "replay_directory_location": "", 
-            "max_game_time": "", 
-            "allow_debug": "Off", 
-            "API_token": "", 
-            "visualize": "Off"
-            }
-        with open(settings_file, 'w+') as f:
+            "replay_directory_location": "",
+            "max_game_time": "",
+            "allow_debug": "Off",
+            "API_token": "",
+            "visualize": "Off",
+        }
+        with open(settings_file, "w+") as f:
             json.dump(data, f)
-    
+
     if not os.path.isfile(results_file):
         Path(results_file).touch()
 
@@ -208,7 +207,7 @@ def run_server(use_frontend=None):
     args, unknown = parser.parse_known_args()
 
     run_frontend = use_frontend if use_frontend is not None else args.frontend
-    if 'false' in [x.lower() for x in unknown]:
+    if "false" in [x.lower() for x in unknown]:
         run_frontend = False
     try:
         loop = asyncio.get_event_loop()
@@ -216,33 +215,33 @@ def run_server(use_frontend=None):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     app = web.Application()
-    app.router.add_static('/static', os.path.join(os.path.dirname(__file__), 'static'))
+    app.router.add_static("/static", os.path.join(os.path.dirname(__file__), "static"))
     app._loop = loop
     app["websockets"] = weakref.WeakSet()
     connection = ConnectionHandler()
     app.router.add_route("GET", "/sc2api", connection.websocket_handler)
     if run_frontend:
-        print('launching with frontend')
+        print("launching with frontend")
         game_runner = frontend.GameRunner()
-        aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
-        app['static_root_url'] = '/static'
+        aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
+        app["static_root_url"] = "/static"
         routes = [
-            web.get("/", frontend.index, name='index'),
-            web.get("/video_feed", connection.stream_handler, name='video_feed'),
-            web.get("/settings", frontend.settings, name='settings'),
-            web.get("/watch", frontend.watch, name='watch'),
-            web.post("/clear_results", frontend.clear_results, name='clear_results'),
-            web.post("/handle_data", frontend.handle_data, name='handle_data'),
-            web.get("/get_settings", frontend.get_settings, name='get_settings'),
-            web.get("/get_results", frontend.get_results, name='get_results'),
-            web.post("/run_games", game_runner.run_games, name='run_games'),
-            web.get("/get_bots", frontend.get_bots, name='get_bots'),
-            web.get("/get_arena_bots", frontend.get_arena_bots, name='get_arena_bots'),
-            web.get("/get_maps", frontend.get_maps, name='get_maps'),
-            web.get("/replays/{replay}", frontend.replays, name='replays'),
-            web.get("/logs/{match_id}/{bot_name}/stderr.log", frontend.logs, name='logs'),
-            web.get("/game_running", game_runner.game_running, name='game_running'),
-            web.get("/ac_log/aiarena-client.log", frontend.ac_log, name='ac_log'),
+            web.get("/", frontend.index, name="index"),
+            web.get("/video_feed", connection.stream_handler, name="video_feed"),
+            web.get("/settings", frontend.settings, name="settings"),
+            web.get("/watch", frontend.watch, name="watch"),
+            web.post("/clear_results", frontend.clear_results, name="clear_results"),
+            web.post("/handle_data", frontend.handle_data, name="handle_data"),
+            web.get("/get_settings", frontend.get_settings, name="get_settings"),
+            web.get("/get_results", frontend.get_results, name="get_results"),
+            web.post("/run_games", game_runner.run_games, name="run_games"),
+            web.get("/get_bots", frontend.get_bots, name="get_bots"),
+            web.get("/get_arena_bots", frontend.get_arena_bots, name="get_arena_bots"),
+            web.get("/get_maps", frontend.get_maps, name="get_maps"),
+            web.get("/replays/{replay}", frontend.replays, name="replays"),
+            web.get("/logs/{match_id}/{bot_name}/stderr.log", frontend.logs, name="logs"),
+            web.get("/game_running", game_runner.game_running, name="game_running"),
+            web.get("/ac_log/aiarena-client.log", frontend.ac_log, name="ac_log"),
         ]
         app.router.add_routes(routes)
     on_start()
@@ -255,7 +254,3 @@ def run_server(use_frontend=None):
 
 if __name__ == "__main__":
     run_server()
-
-
-
-

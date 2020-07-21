@@ -17,7 +17,7 @@ class Result:
         self.bot2_avg_frame = 0
         self.replay_path = None
         self._config = cfg
-    
+
     def __repr__(self):
         return f"""
         Result={self.result}
@@ -43,7 +43,7 @@ class Result:
             "TimeStamp": self.time_stamp,
             "Bot1AvgFrame": self.bot1_avg_frame,
             "Bot2AvgFrame": self.bot2_avg_frame,
-            'ReplayPath': self.replay_path,
+            "ReplayPath": self.replay_path,
         }
 
     def has_result(self):
@@ -57,16 +57,16 @@ class Result:
         Parse result messages into  object
         """
         if result.get("Result", None):
-            
-            temp_results = result['Result']
+
+            temp_results = result["Result"]
             if temp_results == "Error":
                 self.result = "Error"
                 return
-            
+
             if temp_results[self.bot1] == "Result.SC2Crash" or temp_results[self.bot2] == "Result.SC2Crash":
                 self.result = "Error"
                 return
-            
+
             elif temp_results[self.bot1] == "Result.Crashed":
                 self.result = "Player1Crash"
                 self.winner = self.bot2
@@ -94,15 +94,15 @@ class Result:
             elif temp_results[self.bot1] == "Result.Tie":
                 self.result = "Tie"
                 self.winner = "Tie"
-            
+
             elif temp_results[self.bot2] == "Result.Tie":
                 self.result = "Tie"
                 self.winner = "Tie"
 
-            elif temp_results[self.bot1] == 'InitializationError':
+            elif temp_results[self.bot1] == "InitializationError":
                 self.result = "InitializationError"
 
-            elif temp_results[self.bot2] == 'InitializationError':
+            elif temp_results[self.bot2] == "InitializationError":
                 self.result = "InitializationError"
 
         if result.get("GameTime", None):
@@ -112,13 +112,13 @@ class Result:
         if result.get("AverageFrameTime", None):
             try:
                 self.bot1_avg_frame = next(
-                    item[self.bot1] for item in result['AverageFrameTime'] if item.get(self.bot1, None)
+                    item[self.bot1] for item in result["AverageFrameTime"] if item.get(self.bot1, None)
                 )
             except StopIteration:
                 self.bot1_avg_frame = 0
             try:
                 self.bot2_avg_frame = next(
-                    item[self.bot2] for item in result['AverageFrameTime'] if item.get(self.bot2, None)
+                    item[self.bot2] for item in result["AverageFrameTime"] if item.get(self.bot2, None)
                 )
             except StopIteration:
                 self.bot2_avg_frame = 0
@@ -127,4 +127,5 @@ class Result:
             self.time_stamp = result["TimeStamp"]
 
         self.replay_path = os.path.join(
-            self._config.REPLAYS_DIRECTORY, f'{self.match_id}_{self.bot1}_vs_{self.bot2}.SC2Replay')
+            self._config.REPLAYS_DIRECTORY, f"{self.match_id}_{self.bot1}_vs_{self.bot2}.SC2Replay"
+        )

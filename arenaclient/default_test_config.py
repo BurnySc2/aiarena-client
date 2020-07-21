@@ -40,8 +40,7 @@ BOTS_DIRECTORY = os.path.join(WORKING_DIRECTORY, "bots")
 BOT_LOGS_DIRECTORY = os.path.join(WORKING_DIRECTORY, "logs")
 
 MATCH_SOURCE_CONFIG = FileMatchSource.FileMatchSourceConfig(
-    matches_file=os.path.join(WORKING_DIRECTORY, "matches"),
-    results_file=os.path.join(WORKING_DIRECTORY, "results")
+    matches_file=os.path.join(WORKING_DIRECTORY, "matches"), results_file=os.path.join(WORKING_DIRECTORY, "results")
 )
 
 # WEBSITE

@@ -7,11 +7,16 @@ from .units import Units
 class Common:
     ATTRIBUTES = [
         "player_id",
-        "minerals", "vespene",
-        "food_cap", "food_used",
-        "food_army", "food_workers",
-        "idle_worker_count", "army_count",
-        "warp_gate_count", "larva_count"
+        "minerals",
+        "vespene",
+        "food_cap",
+        "food_used",
+        "food_army",
+        "food_workers",
+        "idle_worker_count",
+        "army_count",
+        "warp_gate_count",
+        "larva_count",
     ]
 
     def __init__(self, proto):
@@ -36,7 +41,7 @@ class GameState:
         self.destructables: Units = Units([])
         self.watchtowers: Units = Units([])
         self.units: Units = Units([])
-        
+
     async def _init(self):
         for unit in self.observation.raw_data.units:
             if unit.is_blip:

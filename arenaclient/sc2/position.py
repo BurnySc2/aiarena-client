@@ -1,7 +1,7 @@
 import itertools
 import math
 import random
-from typing import List, Set,  Union
+from typing import List, Set, Union
 
 EPSILON = 10 ** -8
 

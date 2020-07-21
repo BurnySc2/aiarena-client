@@ -138,7 +138,7 @@ class HttpApiMatchSource(MatchSource):
         self._utl.printout(str(result.result))
         replay_file: str = ""
         for file in os.listdir(self._config.REPLAYS_DIRECTORY):
-            if file.endswith('.SC2Replay'):
+            if file.endswith(".SC2Replay"):
                 replay_file = file
                 break
 
@@ -160,21 +160,15 @@ class HttpApiMatchSource(MatchSource):
         else:
             Path(bot2_error_log_tmp).touch()
 
-        zip_file = zipfile.ZipFile(
-            os.path.join(self._config.TEMP_PATH, match.bot1.name + "-error.zip"), "w"
-        )
+        zip_file = zipfile.ZipFile(os.path.join(self._config.TEMP_PATH, match.bot1.name + "-error.zip"), "w")
         zip_file.write(
-            os.path.join(self._config.TEMP_PATH, match.bot1.name + "-error.log"),
-            compress_type=zipfile.ZIP_DEFLATED,
+            os.path.join(self._config.TEMP_PATH, match.bot1.name + "-error.log"), compress_type=zipfile.ZIP_DEFLATED,
         )
         zip_file.close()
 
-        zip_file = zipfile.ZipFile(
-            os.path.join(self._config.TEMP_PATH, match.bot2.name + "-error.zip"), "w"
-        )
+        zip_file = zipfile.ZipFile(os.path.join(self._config.TEMP_PATH, match.bot2.name + "-error.zip"), "w")
         zip_file.write(
-            os.path.join(self._config.TEMP_PATH, match.bot2.name + "-error.log"),
-            compress_type=zipfile.ZIP_DEFLATED,
+            os.path.join(self._config.TEMP_PATH, match.bot2.name + "-error.log"), compress_type=zipfile.ZIP_DEFLATED,
         )
         zip_file.close()
 
@@ -202,30 +196,18 @@ class HttpApiMatchSource(MatchSource):
         # Create downloadable data archives
         if not os.path.isdir(bot1_data_folder):
             os.mkdir(bot1_data_folder)
-        shutil.make_archive(
-            os.path.join(self._config.TEMP_PATH, match.bot1.name + "-data"), "zip", bot1_data_folder
-        )
+        shutil.make_archive(os.path.join(self._config.TEMP_PATH, match.bot1.name + "-data"), "zip", bot1_data_folder)
         if not os.path.isdir(bot2_data_folder):
             os.mkdir(bot2_data_folder)
-        shutil.make_archive(
-            os.path.join(self._config.TEMP_PATH, match.bot2.name + "-data"), "zip", bot2_data_folder
-        )
+        shutil.make_archive(os.path.join(self._config.TEMP_PATH, match.bot2.name + "-data"), "zip", bot2_data_folder)
         attempts = 0
         while attempts < 3:
             try:  # Upload replay file and bot data archives
                 file_list = {
-                    "bot1_data": open(
-                        os.path.join(self._config.TEMP_PATH, f"{match.bot1.name}-data.zip"), "rb"
-                    ),
-                    "bot2_data": open(
-                        os.path.join(self._config.TEMP_PATH, f"{match.bot2.name}-data.zip"), "rb"
-                    ),
-                    "bot1_log": open(
-                        os.path.join(self._config.TEMP_PATH, f"{match.bot1.name}-error.zip"), "rb"
-                    ),
-                    "bot2_log": open(
-                        os.path.join(self._config.TEMP_PATH, f"{match.bot2.name}-error.zip"), "rb"
-                    ),
+                    "bot1_data": open(os.path.join(self._config.TEMP_PATH, f"{match.bot1.name}-data.zip"), "rb"),
+                    "bot2_data": open(os.path.join(self._config.TEMP_PATH, f"{match.bot2.name}-data.zip"), "rb"),
+                    "bot1_log": open(os.path.join(self._config.TEMP_PATH, f"{match.bot1.name}-error.zip"), "rb"),
+                    "bot2_log": open(os.path.join(self._config.TEMP_PATH, f"{match.bot2.name}-error.zip"), "rb"),
                     "arenaclient_log": open(arenaclient_log_zip, "rb"),
                 }
 
@@ -250,13 +232,11 @@ class HttpApiMatchSource(MatchSource):
                 )
                 if post is None:
                     self._utl.printout("ERROR: Result submission failed. 'post' was None.")
-                    attempts +=1
+                    attempts += 1
                     time.sleep(60)
                 elif post.status_code >= 400:  # todo: retry?
-                    self._utl.printout(
-                        f"ERROR: Result submission failed. Status code: {post.status_code}."
-                    )
-                    attempts +=1
+                    self._utl.printout(f"ERROR: Result submission failed. Status code: {post.status_code}.")
+                    attempts += 1
                     time.sleep(60)
                 else:
                     self._utl.printout(result.result + " - Result transferred")
@@ -274,7 +254,7 @@ class FileMatchSource(MatchSource):
     Bot1Name,Bot1Race,Bot1Type,Bot2Name,Bot2Race[T,P,Z,R],Bot2Type,SC2MapName
     """
 
-    MATCH_FILE_VALUE_SEPARATOR = ','
+    MATCH_FILE_VALUE_SEPARATOR = ","
 
     class FileMatchSourceConfig(MatchSource.MatchSourceConfig):
         def __init__(self, matches_file, results_file):
@@ -306,19 +286,19 @@ class FileMatchSource(MatchSource):
     def has_next(self) -> bool:
         with open(self._matches_file, "r") as match_list:
             for match_id, line in enumerate(match_list):
-                if line != '' and line[0] != '#':  # if the line isn't empty or escaped, we've got a match to play
+                if line != "" and line[0] != "#":  # if the line isn't empty or escaped, we've got a match to play
                     return True
         return False
-    
+
     def get_next_match_id(self):
         try:
             with open(self._results_file, "r+") as results_log:
                 results = json.loads(results_log.read())
-                result_list = results['Results']
-                return max([x.get('MatchID', 0) for x in result_list])
+                result_list = results["Results"]
+                return max([x.get("MatchID", 0) for x in result_list])
         except:
             return 0
-    
+
     def next_match(self) -> FileMatch:
 
         next_match = None
@@ -326,7 +306,7 @@ class FileMatchSource(MatchSource):
         with open(self._matches_file, "r") as match_list:
             match_id = self.get_next_match_id() + 1
             for _, line in enumerate(match_list):
-                if line != '' and line[0] != '#':  # if the line isn't empty or escaped, we've got a match to play
+                if line != "" and line[0] != "#":  # if the line isn't empty or escaped, we've got a match to play
                     next_match = self.FileMatch(self._config, match_id, line)
                     break
 
@@ -346,18 +326,18 @@ class FileMatchSource(MatchSource):
             shutil.rmtree(match_log_folder)
         except:
             pass
-        
+
         os.mkdir(match_log_folder)
         try:
             os.mkdir(os.path.join(match_log_folder, str(match.bot1.name)))
             os.mkdir(os.path.join(match_log_folder, str(match.bot2.name)))
         except FileExistsError:
             pass
-        
+
         bot1_data_folder = os.path.join(self._config.BOTS_DIRECTORY, match.bot1.name, "data")
         bot2_data_folder = os.path.join(self._config.BOTS_DIRECTORY, match.bot2.name, "data")
         bot1_error_log = os.path.join(bot1_data_folder, "stderr.log")
-        bot1_error_log_tmp = os.path.join(match_log_folder, match.bot1.name, 'stderr.log')
+        bot1_error_log_tmp = os.path.join(match_log_folder, match.bot1.name, "stderr.log")
 
         if os.path.isfile(bot1_error_log):
             shutil.copy(bot1_error_log, bot1_error_log_tmp)
@@ -365,17 +345,17 @@ class FileMatchSource(MatchSource):
             Path(bot1_error_log_tmp).touch()
 
         bot2_error_log = os.path.join(bot2_data_folder, "stderr.log")
-        bot2_error_log_tmp = os.path.join(match_log_folder, match.bot2.name, 'stderr.log')
+        bot2_error_log_tmp = os.path.join(match_log_folder, match.bot2.name, "stderr.log")
         if os.path.isfile(bot2_error_log):
             shutil.copy(bot2_error_log, bot2_error_log_tmp)
-            
+
         else:
             Path(bot2_error_log_tmp).touch()
 
         with open(self._results_file, "w+") as results_log:
             try:
                 results = json.loads(results_log.read())
-                result_list = results['Results']
+                result_list = results["Results"]
                 result_list.append(result_json)
                 results_log.seek(0)
                 json_object = dict({"Results": result_list})
