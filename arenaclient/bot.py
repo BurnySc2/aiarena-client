@@ -166,7 +166,7 @@ class Bot:
         if bot_type.lower() == "python":
             cmd_line.insert(0, self._config.PYTHON)
         elif bot_type.lower() == "wine":
-            cmd_line.insert(0, "wine")
+            cmd_line.insert(0, os.environ["WINE"])
         elif bot_type.lower() == "mono":
             cmd_line.insert(0, "mono")
         elif bot_type.lower() == "dotnetcore":
@@ -203,8 +203,10 @@ class Bot:
         try:
             if self._config.SYSTEM == "Linux":
                 with open(os.path.join(bot_path, "data", "stderr.log"), "w+") as out:
+                    command = " ".join(cmd_line)
+                    logger.info(f"Starting bot with command: {command}")
                     process = subprocess.Popen(
-                        " ".join(cmd_line),
+                        command,
                         stdout=out,
                         stderr=subprocess.STDOUT,
                         cwd=(str(bot_path)),
