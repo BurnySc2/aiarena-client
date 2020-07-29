@@ -167,6 +167,8 @@ class Bot:
             "--OpponentId",
             str(opponent_id),
         ]
+        if self._config.REALTIME:
+            cmd_line.append("--RealTime")
         if bot_type.lower() == "python":
             cmd_line.insert(0, self._config.PYTHON)
         elif bot_type.lower() == "wine":
