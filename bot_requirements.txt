@@ -46,4 +46,3 @@ sqlalchemy
 loguru
 scikit-image
 tqdm
-pyastar @ git+git://github.com/hjweide/pyastar.git@master#egg=pyastar
