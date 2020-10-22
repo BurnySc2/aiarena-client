@@ -1,4 +1,8 @@
 # aiarena-client
+
+## DISCLAIMER
+This is a fork of https://github.com/aiarena/aiarena-client mostly personally used for https://github.com/BurnySc2/python-sc2-docker
+
 ## Bootstrapping for local play on windows
 The linux steps are probably essentially the same, I just can't guarantee they'd work because I haven't tested it.
 
