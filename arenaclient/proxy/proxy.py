@@ -262,10 +262,11 @@ class Proxy:
             "-tempDir",
             tmp_dir,
         ]
-        if platform.system() == "Linux":
-            wine_path = os.environ["WINE"]
-            logger.info(f"Wine path: {wine_path}")
-            args.insert(0, wine_path)
+        # TODO If launching via wine, add launch option (prepend)
+        # if platform.system() == "Linux":
+        #     wine_path = os.environ["WINE"]
+        #     logger.info(f"Wine path: {wine_path}")
+        #     args.insert(0, wine_path)
 
         return subprocess.Popen(args, cwd=(str(Paths.CWD) if Paths.CWD else None))
 
