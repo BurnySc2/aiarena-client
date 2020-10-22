@@ -262,10 +262,10 @@ class Proxy:
             "-tempDir",
             tmp_dir,
         ]
-        if platform.system() == "Linux":
-            wine_path = os.environ["WINE"]
-            logger.info(f"Wine path: {wine_path}")
-            args.insert(0, wine_path)
+        # if platform.system() == "Linux":
+        #     wine_path = os.environ["WINE"]
+        #     logger.info(f"Wine path: {wine_path}")
+        #     args.insert(0, wine_path)
 
         return subprocess.Popen(args, cwd=(str(Paths.CWD) if Paths.CWD else None))
 
@@ -297,7 +297,7 @@ class Proxy:
         try:
             if not self.joined and str(request).startswith("join_game"):
                 request.join_game.player_name = self.player_name
-                request.join_game.options.raw_affects_selection = False
+                # request.join_game.options.raw_affects_selection = False
                 if self.render:
                     request.join_game.options.render.resolution.x = 250
                     request.join_game.options.render.resolution.y = 250
