@@ -25,6 +25,8 @@ burnysc2 = "^4.11.16"
 tensorflow = "1.15.2"
 scikit-learn = "^0.23.1"
 keras = "2.3.0"
+Jinja2 = "^2.11.2"
+numpy = "^1.19.2"
 
 [tool.poetry.dev-dependencies]
 
