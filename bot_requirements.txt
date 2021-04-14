@@ -1,5 +1,5 @@
 pysc2
-tensorflow==1.15.4
+tensorflow==2.4.0
 scipy
 opencv-python
 keras==2.3.1
